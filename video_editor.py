@@ -3,11 +3,12 @@ from collections import Counter
 import cv2
 import numpy as np
 
-movie = "mat_color"
+movie = "mat_white"
 cap = cv2.VideoCapture(movie + '.mp4')
 
 
 # mat_color  nr of frames:  1037
+# mat_white  nr of frames:  1073
 
 
 # fourcc = cv2.VideoWriter_fourcc(*'XVID')
