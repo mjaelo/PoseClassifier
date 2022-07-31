@@ -3,37 +3,27 @@ from collections import Counter
 import cv2
 import numpy as np
 
-movie = "mat_white"
-cap = cv2.VideoCapture(movie + '.mp4')
+movie = "f2_normal"
+cap = cv2.VideoCapture("videos/"+movie + '.mp4')
 
 
 # mat_color  nr of frames:  1037
 # mat_white  nr of frames:  1073
 
 
-# fourcc = cv2.VideoWriter_fourcc(*'XVID')
-# out = cv2.VideoWriter('output.mp4', -1, 20.0, (640, 480))
-
-
-def append_txt(l1):
-    file1 = open(movie + "_all.txt", "r+")
-    l1 = file1.read() + l1
-
-    file1 = open(movie + "_all.txt", "w")
-    file1.writelines(l1 + "\n")
-    file1.close()
-    cap.release()
-    cv2.destroyAllWindows()
-
-    file1 = open(movie + "_all.txt", "r+")
-    line = "temp"
-    lines = []
-    while line != "":
-        line = file1.readline()
-        if line != "":
-            lines.append(line)
-            print(line)
-    return count_avg(lines)
+def read_txt():
+    file1 = open("expected/" + movie + "_expected.txt", "r+")
+    list = file1.read()
+    nr = list.count('1')
+    print("stand", nr)
+    nr = list.count('2')
+    print("sit", nr)
+    nr = list.count('3')
+    print("lay", nr)
+    nr = list.count('4')
+    print("bow", nr)
+    nr = list.count('0')
+    print("undefined", nr)
 
 
 def count_avg(lines):
@@ -49,19 +39,23 @@ def count_avg(lines):
     return avg_line
 
 
-def read_txt():
-    file1 = open(movie + "_expected.txt", "r+")
-    list = file1.read()
-    nr = list.count('1')
-    print("stand", nr)
-    nr = list.count('2')
-    print("sit", nr)
-    nr = list.count('3')
-    print("lay", nr)
-    nr = list.count('4')
-    print("bow", nr)
-    nr = list.count('0')
-    print("undefined", nr)
+def append_result(l1):
+    file1 = open("expected/" + movie + "_all.txt", "r+")
+    l1 = file1.read() + l1
+
+    file1 = open("expected/" + movie + "_all.txt", "w")
+    file1.writelines(l1 + "\n")
+    file1.close()
+
+    file1 = open("expected/" + movie + "_all.txt", "r+")
+    line = "temp"
+    lines = []
+    while line != "":
+        line = file1.readline()
+        if line != "":
+            lines.append(line)
+            print(line)
+    return lines
 
 
 def play_check():
@@ -115,15 +109,17 @@ def play_check():
     except:
         print("nr of frames: ", nr)
 
-        list = append_txt(list)
+        lines = append_result(list)
+        list = count_avg(lines)
 
-        file1 = open(movie + "_expected.txt", "w")
+        file1 = open("expected/" + movie + "_expected.txt", "w")
         file1.writelines(list)
         file1.close()
         print("saved frames:", len(list))
         cap.release()
         cv2.destroyAllWindows()
         read_txt()
+
 
 if __name__ == '__main__':
     play_check()
