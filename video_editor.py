@@ -13,16 +13,17 @@ cap = cv2.VideoCapture("videos/"+movie + '.mp4')
 
 def read_txt():
     file1 = open("expected/" + movie + "_expected.txt", "r+")
-    list = file1.read()
-    nr = list.count('1')
+    results = file1.read()
+    results=  [char for char in results]
+    nr = results.count('1')
     print("stand", nr)
-    nr = list.count('2')
+    nr = results.count('2')
     print("sit", nr)
-    nr = list.count('3')
+    nr = results.count('3')
     print("lay", nr)
-    nr = list.count('4')
+    nr = results.count('4')
     print("bow", nr)
-    nr = list.count('0')
+    nr = results.count('0')
     print("undefined", nr)
 
 
@@ -39,23 +40,21 @@ def count_avg(lines):
     return avg_line
 
 
-def append_result(l1):
-    file1 = open("expected/" + movie + "_all.txt", "r+")
-    l1 = file1.read() + l1
-
-    file1 = open("expected/" + movie + "_all.txt", "w")
-    file1.writelines(l1 + "\n")
-    file1.close()
-
+def append_result(new_line):
     file1 = open("expected/" + movie + "_all.txt", "r+")
     line = "temp"
-    lines = []
+    all_lines = []
     while line != "":
         line = file1.readline()
         if line != "":
-            lines.append(line)
+            all_lines.append(line)
             print(line)
-    return lines
+    all_lines.append(new_line+ "\n")
+    file1 = open("expected/" + movie + "_all.txt", "w")
+    file1.writelines(all_lines)
+    file1.close()
+    #print(all_lines)
+    return all_lines
 
 
 def play_check():
@@ -71,27 +70,26 @@ def play_check():
 
     cv2.putText(img, str(nr), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 8, 8), 3)
     nr += 1
-
     go = 0
-    list = ''
+    results_list = ''
     try:
         # 0=?, 1=stand, 2=sit, 3=lay, 4=bow
         while key != ord('q'):
             if key == ord(' '):
                 go = 1
-                list += '0'
+                results_list += '0'
             elif key == ord('1'):
                 go = 1
-                list += '1'
+                results_list += '1'
             elif key == ord('2'):
                 go = 1
-                list += '2'
+                results_list += '2'
             elif key == ord('3'):
                 go = 1
-                list += '3'
+                results_list += '3'
             elif key == ord('4'):
                 go = 1
-                list += '4'
+                results_list += '4'
             else:
                 go = 0
             if go == 1:
@@ -109,13 +107,13 @@ def play_check():
     except:
         print("nr of frames: ", nr)
 
-        lines = append_result(list)
-        list = count_avg(lines)
+        all_lines = append_result(results_list)#all lines
+        results_list = count_avg(all_lines)
 
         file1 = open("expected/" + movie + "_expected.txt", "w")
-        file1.writelines(list)
+        file1.writelines(results_list)
         file1.close()
-        print("saved frames:", len(list))
+        print("saved frames:", len(results_list))
         cap.release()
         cv2.destroyAllWindows()
         read_txt()

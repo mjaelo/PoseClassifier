@@ -3,9 +3,11 @@ import mediapipe as mp
 import time
 import xlsxwriter
 
+
 # write to excel
-vid='videos/f2_normal.mp4'
-excel='BP/BP_f20.xlsx'
+vid='videos/f2_all.mp4'
+excel='BP/BP_f2all.xlsx'
+
 book = xlsxwriter.Workbook(excel)
 sheet = book.add_worksheet()
 
@@ -37,7 +39,7 @@ def detect():
                 for id, lm in enumerate(results.pose_landmarks.landmark):
                     h, w, c = img.shape
                     print(id, lm)
-                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    cx, cy = (lm.x * w), (lm.y * h)
 
                     # write to excel
                     if id == 0:
@@ -47,7 +49,7 @@ def detect():
                     sheet.write(row, column, content)
                     column += 1
 
-                    cv2.circle(img, (cx, cy), 10, (255, 0, 0), cv2.FILLED)
+                    cv2.circle(img, (int(cx), int(cy)), 10, (255, 0, 0), cv2.FILLED)
             else:
                 column = 0
                 row += 1
@@ -69,7 +71,7 @@ def detect():
             break
     column = 0
     row += 1
-    sheet.write(row, column, 'endfile') # to prevent cell empty error at the end of file
+    #sheet.write(row, column, 'endfile') # to prevent cell empty error at the end of file
     book.close()
 
 if __name__ == '__main__':
