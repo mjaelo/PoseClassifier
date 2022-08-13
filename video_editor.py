@@ -3,7 +3,7 @@ from collections import Counter
 import cv2
 import numpy as np
 
-movie = "f2_normal"
+movie = "f1_black"
 cap = cv2.VideoCapture("videos/"+movie + '.mp4')
 
 
@@ -11,7 +11,7 @@ cap = cv2.VideoCapture("videos/"+movie + '.mp4')
 # mat_white  nr of frames:  1073
 
 
-def read_txt():
+def read_txt_statistics():
     file1 = open("expected/" + movie + "_expected.txt", "r+")
     results = file1.read()
     results=  [char for char in results]
@@ -48,7 +48,7 @@ def append_result(new_line):
         line = file1.readline()
         if line != "":
             all_lines.append(line)
-            print(line)
+            #print(line)
     all_lines.append(new_line+ "\n")
     file1 = open("expected/" + movie + "_all.txt", "w")
     file1.writelines(all_lines)
@@ -61,6 +61,8 @@ def play_check():
     nr = 0
     key = ord('a')
     ret, img = cap.read()
+
+    #width: 1080 height: 1920
 
     # resize image
     width = int(img.shape[1] / 2)
@@ -116,9 +118,9 @@ def play_check():
         print("saved frames:", len(results_list))
         cap.release()
         cv2.destroyAllWindows()
-        read_txt()
+        read_txt_statistics()
 
 
 if __name__ == '__main__':
     play_check()
-    # read_txt()
+    # read_txt_statistics()

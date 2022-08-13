@@ -5,8 +5,8 @@ import xlsxwriter
 
 
 # write to excel
-vid='videos/f2_all.mp4'
-excel='BP/BP_f2all.xlsx'
+vid='videos/f1_all.mp4'
+excel='BP/BP_f1a.xlsx'
 
 book = xlsxwriter.Workbook(excel)
 sheet = book.add_worksheet()
@@ -20,7 +20,7 @@ def detect():
 
     cap = cv2.VideoCapture(vid)
     pTime = 0
-
+    empty_frames=0
     row = 0
     column = 0
     while column <= 32:
@@ -53,6 +53,7 @@ def detect():
             else:
                 column = 0
                 row += 1
+                empty_frames+=1
             cTime = time.time()
             fps = 1 / (cTime - pTime)
             pTime = cTime
@@ -72,6 +73,7 @@ def detect():
     column = 0
     row += 1
     #sheet.write(row, column, 'endfile') # to prevent cell empty error at the end of file
+    print("empty:",empty_frames,"row",row,"col",column)
     book.close()
 
 if __name__ == '__main__':
