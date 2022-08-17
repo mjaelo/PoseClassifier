@@ -12,23 +12,20 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 
 expected1 = []
-poses_total_f1 = 1037
+poses_total_f1 = 1035
 expected2 = []
-poses_total_f2 = 1073
-
-one_model = 1
+poses_total_f2 = 1071
 
 
 # todo train model dziala tymczasowo na tablicy stringów zaiast tablicy 3 wym int
-# todo czemu wyniki f2 są znacznie gorsze? tak powinno być?
-# todo przy tworzeniu 3 modeli nei trzeba ujednolicac danych. może stworze zmienną globalną, czy jest 1, czy 3 i wtedy ify w get data?
 # todo usunąć puste klatki przy testowaniu wyszkolonego modelu?
-# todo czy predykcję robię po klatce, jak powineniem, czy daję listę klatek?
+# todo OP czasem wykrywa 2 lduzi
 
 # wymiary obrazków width: 1080 height: 1920
-# od klatki 650 w f1b i f1a powinno być puste
+# od klatki 650 w f1b i f1a powinny być puste
 
 
 def play_int_model():
@@ -38,7 +35,7 @@ def play_int_model():
         [[2, 2], [2, 2], [2, 2]],
         [[1, 2], [2, 2], [2, 2]]
     ]
-    expected = [1, 1, 2, 2]
+    expected = ['1', '1', '2', '2']
     data = array(data)
     data = data.reshape(4, 2 * 3)
 
@@ -64,6 +61,47 @@ def play_int_model():
     print(result)
 
 
+def string_to_list_list(str):
+    # str = ['[][]','[][]']
+    # str to list list
+    data = []
+    for s in str:
+        if len(s) > 2:
+            s = s[0:-2]
+            new_s = s.split(',')
+            new_s = [i.replace('[', '') for i in new_s]
+            new_s = [i.replace(']', '') for i in new_s]
+            for ele in range(len(new_s)):
+                if new_s[ele] == '':
+                    new_s[ele] = '0.0'
+            new_s = [float(i) for i in new_s]
+            if len(new_s) != 34:
+                print(len(new_s),new_s)
+            data.append(new_s)
+        else:
+            # print("error",s)
+            frame = []
+            for i in range(34):
+                frame.append(0.0)
+            data.append(frame)
+    # list to array
+    for ele in data:
+        if len(ele)!=34:
+            print(ele)
+    data = array(data)
+    return data
+
+
+def train_int_model(X_train, Y_train):
+    X_train = string_to_list_list(X_train)
+    # x data, y labels
+    # train = expected, X = data. Y = labels
+    # train model
+    neigh = KNeighborsClassifier()
+    neigh.fit(X_train, Y_train)
+    return neigh
+
+
 # train model jest na ciagu pkt ze wszystkich algorytmow, ze wszystkich filmow?
 # czyli X_train = BPf10+OPf10+DPf10+BPf20+OPf20+DPf20 i Y_train = expf1+expf1+expf1+expf2+expf2+expf2
 def train_model(data, expected):
@@ -84,7 +122,7 @@ def train_model(data, expected):
 # dlugosc 33 punkty an klatke
 # zwraca dane w formacie [ '[[x,y],[],...]', '[[],[]]', ... ]
 def get_BP_data(loc):
-    global poses_total_f1, poses_total_f2, one_model
+    global poses_total_f1, poses_total_f2
     poses_total = poses_total_f1
     if loc[-2] == '2':
         poses_total = poses_total_f2
@@ -100,15 +138,13 @@ def get_BP_data(loc):
     empty_frames = 0  # poses_total - len(all)-1
 
     for fr in all:
-        frame = fr
-        if one_model == 1:
-            frame = [fr[0], fr[11],  # glowa
-                     fr[12], fr[14], fr[16],  # lreka
-                     fr[11], fr[13], fr[15],  # preka
-                     fr[24], fr[26], fr[28],  # lnoga
-                     fr[23], fr[25], fr[27],  # pnoga
-                     fr[5], fr[2], fr[8], fr[7]  # oczy
-                     ]
+        frame = [fr[0], fr[11],  # glowa
+                 fr[12], fr[14], fr[16],  # lreka
+                 fr[11], fr[13], fr[15],  # preka
+                 fr[24], fr[26], fr[28],  # lnoga
+                 fr[23], fr[25], fr[27],  # pnoga
+                 fr[5], fr[2], fr[8]  # , fr[7]  # oczy
+                 ]
         # pkt na pozycji 1 jest zły. jest naprawde pomiedzy 11 i 12
         is_nan = 0
         row = ''
@@ -124,24 +160,24 @@ def get_BP_data(loc):
             tempi = ''
             add = 1
             # zaokreglenie do 3 miejsc po przecinku
-            if one_model == 1:
-                for j in range(len(i)):
-                    if add == 1:
-                        tempi += i[j]
-                    if i[j] == '.':
-                        add = 0
-                        tempi += i[j + 1]
-                        if len(i) > j + 2:
+
+            for j in range(len(i)):
+                if add == 1:
+                    tempi += i[j]
+                if i[j] == '.':
+                    add = 0
+                    tempi += i[j + 1]
+                    if len(i) > j + 2: # zabespieczenia przed liczbami z cz. dziesietna < 3
+                        if i[j + 2]!=',':
                             tempi += i[j + 2]
                             if len(i) > j + 3:
-                                tempi += i[j + 3]
-                    if i[j] == ',':
-                        add = 1
-                        tempi += i[j]
-                        j += 1
-                row += tempi + ']' + ','
-            else:
-                row += i  # todo nwm czy działa
+                                if i[j + 3] != ',':
+                                    tempi += i[j + 3]
+                if i[j] == ',':
+                    add = 1
+                    tempi += i[j]
+                    j += 1
+            row += tempi + ']' + ','
         if is_nan == 1:
             empty_frames += 1
         if len(all_frames) != poses_total:
@@ -156,7 +192,7 @@ def get_BP_data(loc):
 # f10 ma 1036 pliki a f1d tylko 1034, co powoduje błedy. dodac je do brakujących klatek?
 # dlugosc 25 punkty an klatke
 def get_OP_data(loc):
-    global poses_total_f1, poses_total_f2, one_model
+    global poses_total_f1, poses_total_f2
     poses_total = poses_total_f1
     if loc[7] == '2':  # wybór filmiku
         poses_total = poses_total_f2
@@ -182,25 +218,24 @@ def get_OP_data(loc):
                 if data != []:
                     data = data[0]['pose_keypoints_2d']
                 for j in range(0, len(data), 3):  # 75 łącznie c[74],y[73],x[72]
-                    # [y0,x0,c0,y1,x1,c1...]
-                    y = round(data[j], 3)
-                    x = round(data[j + 1], 3)
+                    # [x0,y0,c0,x1,y1,c1...]
+                    x = round(data[j], 3)
+                    y = round(data[j + 1], 3)
                     cell = [x, y]
                     point_nr += 1
                     row.append(cell)
         fr = row
         row_AP = []
-        if one_model == 1:
-            if len(fr) > 17:
-                row_AP = [fr[0], fr[1],  # glowa
-                          fr[2], fr[3], fr[4],  # lreka
-                          fr[5], fr[6], fr[7],  # preka
-                          fr[9], fr[10], fr[11],  # lnoga
-                          fr[12], fr[13], fr[14],  # pnoga
-                          fr[5], fr[16], fr[17], fr[18]  # oczy
-                          ]
-        else:
-            row_AP = row
+
+        if len(fr) > 17:
+            row_AP = [fr[0], fr[1],  # glowa
+                      fr[2], fr[3], fr[4],  # lreka
+                      fr[5], fr[6], fr[7],  # preka
+                      fr[9], fr[10], fr[11],  # lnoga
+                      fr[12], fr[13], fr[14],  # pnoga
+                      fr[5], fr[16], fr[17]  # , fr[18]  # oczy
+                      ]
+
         all_frames.append(str(row_AP))
     return all_frames, empty_frames
 
@@ -208,7 +243,7 @@ def get_OP_data(loc):
 # 17 keypointsow w jednej klatce
 # słaba skuteczność
 def get_AP_data(loc):
-    global poses_total_f1, poses_total_f2, one_model
+    global poses_total_f1, poses_total_f2
     poses_total = poses_total_f1
     if loc[7] == '2':
         poses_total = poses_total_f2
@@ -249,12 +284,8 @@ def get_AP_data(loc):
                 empty_frames += 1
             for j in range(0, len(frame), 3):  # 75 łącznie c[74],y[73],x[72]
                 # [x0,y0,c0,x1,y1,c1...]
-                if one_model == 1:
-                    x = round(frame[j], 3)
-                    y = round(frame[j + 1], 3)
-                else:
-                    x = frame[j]
-                    y = frame[j + 1]
+                x = round(frame[j], 3)
+                y = round(frame[j + 1], 3)
                 # if loc[-1] == '0':
                 # width: 1080 height: 1920
                 # y = round(abs(y - 1920), 3)  # błąd w AP generuje odwrócone filmiki w f10 i f20
@@ -336,11 +367,8 @@ def result_statistics(poses, film_nr):
 
 
 def write_results(row, missing_frames, percent):
-    global one_model
-    if one_model == 1:
-        loc = "Results.xlsx"
-    else:
-        loc = "Results_3.xlsx"
+
+    loc = "Results.xlsx"
     df1 = pd.read_excel(loc)
     df1.at[row, 'Brakujące klatki'] = missing_frames
     df1.at[row, 'Poprawność klasyfikatora'] = percent
@@ -355,6 +383,7 @@ def predict_pose(model, filename, nr):
     if filename[0] == 'A':
         data, missing_frames = get_AP_data(filename)
 
+    data = string_to_list_list(data)
     result = model.predict(data)
 
     correct_poses = result_statistics(result, filename[7])
@@ -375,90 +404,6 @@ def predict_pose(model, filename, nr):
     write_results(nr, missing_frames, correctness)
 
 
-# 3 models for each alg
-def get_model(loc1, loc2, expected1, expected2):
-    # get X_train data
-    if loc1[0] == 'B':
-        data1, _ = get_BP_data(loc1)
-        data2, _ = get_BP_data(loc2)
-    elif loc1[0] == 'O':
-        data1, _ = get_OP_data(loc1)
-        data2, _ = get_OP_data(loc2)
-    elif loc1[0] == 'A':
-        data1, _ = get_AP_data(loc1)
-        data2, _ = get_AP_data(loc2)
-
-    # get Y_train data
-    X_train = data1 + data2
-    Y_train = expected1 + expected2
-
-    for i in range(len(X_train)):
-        if i < len(X_train):
-            if X_train[i] == '[]':
-                del X_train[i]
-                del Y_train[i]
-    model = train_model(X_train, Y_train)
-    return model
-
-
-# 3 models for each alg
-def main_3():
-    do_what = [1, 1, 1, 1, 1, 1]  # BPf1, BPf2, OPf1, OPf2, APf1, APf2
-    # expected f1
-    global expected1
-    file1 = open("expected/f1_normal_expected.txt", "r+")
-    list1 = file1.read()
-    for result in list1:
-        expected1.append(result)
-    # expected f2
-    global expected2
-    file2 = open("expected/f2_normal_expected.txt", "r+")
-    list2 = file2.read()
-    for result in list2:
-        expected2.append(result)
-
-    # make predictions
-    print("\nBlazePose")
-    BP_model = get_model("BP/BP_f10", "BP/BP_f20", expected1, expected2)
-    if do_what[0] == 1:
-        numbers = [0, 1, 2, 3]
-        filenames = ["BP/BP_f10", "BP/BP_f1d", "BP/BP_f1b", "BP/BP_f1a"]
-        for i in range(len(numbers)):
-            predict_pose(BP_model, filenames[i], numbers[i])
-    if do_what[1] == 1:
-        numbers = [4, 5, 6, 7]
-        filenames = ["BP/BP_f20", "BP/BP_f2d", "BP/BP_f2b", "BP/BP_f2a"]
-        for i in range(len(numbers)):
-            predict_pose(BP_model, filenames[i], numbers[i])
-
-    print("\nOpenPose")
-    OP_model = get_model('OP/OP_f10/f1_normal_', 'OP/OP_f20/f2_normal_', expected1, expected2)
-    if do_what[2] == 1:
-        numbers = [8, 9, 10, 11]
-        filenames = ['OP/OP_f10/f1_normal_', 'OP/OP_f1d/f1_dark_', 'OP/OP_f1b/f1_black_', 'OP/OP_f1a/f1_all_']
-        for i in range(len(numbers)):
-            predict_pose(OP_model, filenames[i], numbers[i])
-    if do_what[3] == 1:
-        numbers = [12, 13, 14, 15]
-        filenames = ['OP/OP_f20/f2_normal_', 'OP/OP_f2d/f2_dark_', 'OP/OP_f2b/f2_black_', 'OP/OP_f2a/f2_all_']
-        for i in range(len(numbers)):
-            predict_pose(OP_model, filenames[i], numbers[i])
-
-    print("\nAlphaPose")
-    AP_model = get_model("AP/AP_f10", "AP/AP_f20", expected1, expected2)
-    if do_what[4] == 1:
-        numbers = [16, 17, 18, 19]
-        filenames = ["AP/AP_f10", "AP/AP_f1d", "AP/AP_f1b", "AP/AP_f1a"]
-        for i in range(len(numbers)):
-            predict_pose(AP_model, filenames[i], numbers[i])
-    if do_what[5] == 1:
-        numbers = [20, 21, 22, 23]
-        filenames = ["AP/AP_f20", "AP/AP_f2d", "AP/AP_f2b", "AP/AP_f2a"]
-        for i in range(len(numbers)):
-            predict_pose(AP_model, filenames[i], numbers[i])
-
-
-# one model for everything
 def main_1():
     do_what = [1, 1, 1, 1, 1, 1]  # BPf1, BPf2, OPf1, OPf2, APf1, APf2
     # expected f1
@@ -486,12 +431,13 @@ def main_1():
     X_train = BP_data1 + BP_data2 + OP_data1 + OP_data2 + AP_data1 + AP_data2
     Y_train = expected1 + expected2 + expected1 + expected2 + expected1 + expected2
 
+    X_train_new = []
+    Y_train_new = []
     for i in range(len(X_train)):
-        if i < len(X_train):
-            if X_train[i] == '[]':
-                del X_train[i]
-                del Y_train[i]
-    model = train_model(X_train, Y_train)
+        if X_train[i] != '[]':
+            X_train_new.append(X_train[i])
+            Y_train_new.append(Y_train[i])
+    model = train_int_model(X_train_new, Y_train_new)
 
     # use model for getting data
     print("\nBlazePose")
@@ -531,8 +477,8 @@ def main_1():
             predict_pose(model, filenames[i], numbers[i])
 
 
-
 if __name__ == '__main__':
-    play_int_model()
-    # main_1()
+    # play_int_model()
+    # train_int_model(['[[1.0,2.0],[1.1,2.2]]', '[[1.2,2.2],[1.1,2.2]]'], ['1', '2'])
+    main_1()
     # main_3()

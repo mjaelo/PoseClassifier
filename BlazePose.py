@@ -5,8 +5,8 @@ import xlsxwriter
 
 
 # write to excel
-vid='videos/f1_all.mp4'
-excel='BP/BP_f1a.xlsx'
+vid='videos/f102.mp4'
+excel='BP/BP_f10.xlsx'
 
 book = xlsxwriter.Workbook(excel)
 sheet = book.add_worksheet()

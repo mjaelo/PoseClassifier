@@ -3,12 +3,12 @@ from collections import Counter
 import cv2
 import numpy as np
 
-movie = "f1_black"
+movie = "f1_normal"
 cap = cv2.VideoCapture("videos/"+movie + '.mp4')
 
 
-# mat_color  nr of frames:  1037
-# mat_white  nr of frames:  1073
+# mat_color  nr of frames:  1037/4
+# mat_white  nr of frames:  1073/0
 
 
 def read_txt_statistics():
