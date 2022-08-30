@@ -92,7 +92,7 @@ def string_to_list_list(str):
     return data
 
 
-def train_int_model(X_train, Y_train):
+def train_model(X_train, Y_train):
     X_train = string_to_list_list(X_train)
     # x data, y labels
     # train = expected, X = data. Y = labels
@@ -100,21 +100,6 @@ def train_int_model(X_train, Y_train):
     neigh = KNeighborsClassifier()
     neigh.fit(X_train, Y_train)
     return neigh
-
-
-# train model jest na ciagu pkt ze wszystkich algorytmow, ze wszystkich filmow?
-# czyli X_train = BPf10+OPf10+DPf10+BPf20+OPf20+DPf20 i Y_train = expf1+expf1+expf1+expf2+expf2+expf2
-def train_model(data, expected):
-    # x data, y labels
-    # train = expected, X = data. Y = labels
-    X_train = data
-    Y_train = expected
-    # train model
-    vectorizer = TfidfVectorizer()
-    regressor = LogisticRegression()
-    pipeline = Pipeline([('vectorizer', vectorizer), ('regressor', regressor)])
-    pipeline.fit(X_train, Y_train)
-    return pipeline
 
 
 # po co mi points_nr, jak jest problem chyba tylko z pustymi klatkami?
@@ -404,7 +389,7 @@ def predict_pose(model, filename, nr):
     write_results(nr, missing_frames, correctness)
 
 
-def main_1():
+def main():
     do_what = [1, 1, 1, 1, 1, 1]  # BPf1, BPf2, OPf1, OPf2, APf1, APf2
     # expected f1
     global expected1
@@ -437,7 +422,7 @@ def main_1():
         if X_train[i] != '[]':
             X_train_new.append(X_train[i])
             Y_train_new.append(Y_train[i])
-    model = train_int_model(X_train_new, Y_train_new)
+    model = train_model(X_train_new, Y_train_new)
 
     # use model for getting data
     print("\nBlazePose")
@@ -480,5 +465,5 @@ def main_1():
 if __name__ == '__main__':
     # play_int_model()
     # train_int_model(['[[1.0,2.0],[1.1,2.2]]', '[[1.2,2.2],[1.1,2.2]]'], ['1', '2'])
-    main_1()
+    main()
     # main_3()
